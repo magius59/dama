@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ACME Bus Services — Indagine BusTrack | Esercitazione Data Governance</title>
+<style>
+  :root {
+    --blu-scuro: #1F3864;
+    --blu-med: #2E74B5;
+    --blu-chiaro: #BDD7EE;
+    --arancio: #E8711A;
+    --verde: #375623;
+    --verde-ch: #E2EFDA;
+    --rosso: #C00000;
+    --rosso-ch: #FCE4D6;
+    --giallo: #FFF2CC;
+    --giallo-sc: #7F6000;
+    --grigio-ch: #F2F2F2;
+    --grigio-sc: #D9D9D9;
+    --bianco: #ffffff;
+    --testo: #1a1a2e;
+    --testo-light: #4a4a6a;
+
+    --raggio: 8px;
+    --ombra: 0 2px 12px rgba(31,56,100,0.13);
+    --ombra-hover: 0 4px 20px rgba(31,56,100,0.22);
+    --trans: 0.18s ease;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f0f4f8;
+    color: var(--testo);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--blu-scuro);
+    color: white;
+    padding: 14px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  }
+  .header-brand { font-size: 13px; opacity: 0.7; white-space: nowrap; }
+  .header-title { font-size: 17px; font-weight: bold; text-align: center; flex: 1; }
+  #progress-bar-wrap {
+    display: flex; align-items: center; gap: 8px; white-space: nowrap;
+  }
+  #progress-label { font-size: 12px; opacity: 0.75; }
+  #progress-track {
+    width: 100px; height: 6px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 3px; overflow: hidden;
+  }
+  #progress-fill {
+    height: 100%; background: var(--arancio);
+    border-radius: 3px; transition: width 0.4s ease;
+    width: 0%;
+  }
+
+  /* ── SIDEBAR ── */
+  .layout { display: flex; flex: 1; min-height: 0; }
+
+  #sidebar {
+    width: 240px; min-width: 200px; max-width: 260px;
+    background: var(--bianco);
+    border-right: 2px solid var(--grigio-sc);
+    display: flex; flex-direction: column;
+    overflow-y: auto;
+  }
+
+  .sidebar-section { padding: 14px; border-bottom: 1px solid var(--grigio-sc); }
+  .sidebar-section h3 {
+    font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--testo-light);
+    margin-bottom: 8px;
+  }
+
+  .role-pill {
+    display: flex; align-items: center; gap: 7px;
+    padding: 6px 8px; border-radius: 5px;
+    margin-bottom: 4px; font-size: 12px;
+    cursor: pointer; transition: background var(--trans);
+  }
+  .role-pill:hover { background: var(--grigio-ch); }
+  .role-badge {
+    width: 32px; height: 20px; border-radius: 3px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: bold; color: white; flex-shrink: 0;
+  }
+  .rb-do  { background: var(--blu-scuro); }
+  .rb-bds { background: var(--blu-med); }
+  .rb-dc  { background: #375623; }
+  .rb-dgc { background: #6B2D8B; }
+  .rb-co  { background: #C55A11; }
+  .rb-ub  { background: var(--arancio); }
+
+  /* Tooltip modale ruolo */
+  #role-modal {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.45); z-index: 999;
+    align-items: center; justify-content: center;
+  }
+  #role-modal.show { display: flex; }
+  .role-modal-box {
+    background: white; border-radius: 10px;
+    max-width: 480px; width: 90%; padding: 24px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    position: relative;
+  }
+  .role-modal-box h2 { font-size: 18px; color: var(--blu-scuro); margin-bottom: 4px; }
+  .role-modal-box .role-full { font-size: 13px; color: var(--testo-light); margin-bottom: 14px; }
+  .role-modal-box p { font-size: 14px; line-height: 1.6; margin-bottom: 10px; }
+  .role-modal-box ul { padding-left: 18px; font-size: 13px; line-height: 1.7; color: var(--testo-light); }
+  .modal-close {
+    position: absolute; top: 12px; right: 16px;
+    background: none; border: none; font-size: 22px;
+    cursor: pointer; color: var(--testo-light);
+    line-height: 1;
+  }
+
+  /* Cronologia */
+  #storia { font-size: 12px; }
+  .storia-item {
+    padding: 5px 8px; border-left: 3px solid var(--grigio-sc);
+    margin-bottom: 4px; cursor: pointer; border-radius: 0 4px 4px 0;
+    transition: background var(--trans), border-color var(--trans);
+  }
+  .storia-item:hover { background: var(--grigio-ch); }
+  .storia-item.ok { border-color: var(--verde); }
+  .storia-item.err { border-color: var(--rosso); }
+  .storia-item span { font-size: 10px; opacity: 0.6; display: block; margin-top: 1px; }
+
+  /* ── MAIN ── */
+  #main {
+    flex: 1; overflow-y: auto;
+    display: flex; flex-direction: column;
+    align-items: center; padding: 28px 24px 40px;
+  }
+
+  #scene-wrap { max-width: 760px; width: 100%; }
+
+  /* Act label */
+  .act-label {
+    font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.1em; color: var(--testo-light);
+    margin-bottom: 8px;
+  }
+
+  /* Scene card */
+  .scene-card {
+    background: white; border-radius: var(--raggio);
+    box-shadow: var(--ombra);
+    padding: 28px 32px;
+    margin-bottom: 20px;
+    animation: fadeIn 0.25s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  .scene-card h2 {
+    font-size: 20px; color: var(--blu-scuro);
+    margin-bottom: 16px; line-height: 1.35;
+    border-bottom: 2px solid var(--blu-chiaro);
+    padding-bottom: 10px;
+  }
+
+  .scene-body { font-size: 15px; line-height: 1.75; color: var(--testo); }
+  .scene-body p { margin-bottom: 12px; }
+  .scene-body strong { color: var(--blu-scuro); }
+  .scene-body em { color: var(--testo-light); font-style: italic; }
+
+  /* Info box */
+  .infobox {
+    border-radius: var(--raggio); padding: 13px 16px;
+    margin: 14px 0; font-size: 13.5px; line-height: 1.6;
+  }
+  .infobox.dati { background: var(--blu-chiaro); border-left: 4px solid var(--blu-med); }
+  .infobox.warn { background: var(--giallo); border-left: 4px solid #BF8F00; }
+  .infobox.err  { background: var(--rosso-ch); border-left: 4px solid var(--rosso); }
+  .infobox.ok   { background: var(--verde-ch); border-left: 4px solid var(--verde); }
+  .infobox.info { background: var(--grigio-ch); border-left: 4px solid var(--grigio-sc); }
+  .infobox b { display: block; margin-bottom: 4px; }
+
+  /* Choices */
+  .choices { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+
+  .choice-btn {
+    background: var(--bianco); border: 2px solid var(--blu-chiaro);
+    border-radius: var(--raggio); padding: 14px 18px;
+    text-align: left; cursor: pointer; font-size: 14px;
+    font-family: Arial, Helvetica, sans-serif;
+    color: var(--testo); line-height: 1.5;
+    transition: border-color var(--trans), background var(--trans), box-shadow var(--trans);
+    display: flex; align-items: flex-start; gap: 12px;
+  }
+  .choice-btn:hover {
+    border-color: var(--blu-med); background: #f0f6ff;
+    box-shadow: var(--ombra-hover);
+  }
+  .choice-btn .choice-letter {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--blu-med); color: white;
+    font-size: 13px; font-weight: bold;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 1px;
+  }
+  .choice-btn .choice-text { flex: 1; }
+  .choice-btn .choice-role {
+    font-size: 11px; opacity: 0.6; display: block; margin-top: 2px;
+  }
+
+  /* Feedback overlay (wrong answer) */
+  #feedback-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.55); z-index: 800;
+    align-items: center; justify-content: center;
+  }
+  #feedback-overlay.show { display: flex; }
+  .feedback-box {
+    background: white; border-radius: 10px;
+    max-width: 540px; width: 90%; padding: 28px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  }
+  .feedback-box.wrong h3 { color: var(--rosso); margin-bottom: 12px; font-size: 16px; }
+  .feedback-box.ok    h3 { color: var(--verde); margin-bottom: 12px; font-size: 16px; }
+  .feedback-box p { font-size: 14px; line-height: 1.65; margin-bottom: 10px; }
+  .feedback-box .consequence {
+    background: var(--rosso-ch); border-radius: 6px;
+    padding: 10px 14px; font-size: 13px; line-height: 1.6;
+    margin-bottom: 14px; border-left: 4px solid var(--rosso);
+  }
+  .feedback-box .consequence.ok-con {
+    background: var(--verde-ch); border-left-color: var(--verde);
+  }
+  .feedback-btn {
+    background: var(--blu-scuro); color: white;
+    border: none; border-radius: 6px; padding: 10px 20px;
+    cursor: pointer; font-size: 14px; font-family: Arial, Helvetica, sans-serif;
+    transition: background var(--trans);
+  }
+  .feedback-btn:hover { background: var(--blu-med); }
+
+  /* Score banner */
+  .score-banner {
+    background: var(--blu-scuro); color: white;
+    border-radius: var(--raggio); padding: 18px 24px;
+    margin-bottom: 20px; display: flex; align-items: center; gap: 16px;
+  }
+  .score-num { font-size: 36px; font-weight: bold; color: var(--arancio); }
+  .score-label { font-size: 13px; opacity: 0.8; }
+
+  /* Final card */
+  .final-card { text-align: center; }
+  .final-card .finale-emoji { font-size: 52px; margin-bottom: 12px; }
+  .final-card h2 { font-size: 22px; color: var(--blu-scuro); margin-bottom: 10px; }
+  .final-card .raci-final {
+    background: var(--grigio-ch); border-radius: 8px;
+    padding: 16px; margin: 16px 0; text-align: left;
+    font-size: 13px; line-height: 1.8;
+  }
+  .final-card .raci-final table { width: 100%; border-collapse: collapse; }
+  .final-card .raci-final th {
+    background: var(--blu-scuro); color: white;
+    padding: 8px 10px; font-size: 12px; text-align: left;
+  }
+  .final-card .raci-final td {
+    padding: 7px 10px; border-bottom: 1px solid var(--grigio-sc); font-size: 13px;
+  }
+  .final-card .raci-final tr:last-child td { border-bottom: none; }
+  .final-card .raci-final td:nth-child(2) { font-weight: bold; color: var(--blu-scuro); }
+
+  .restart-btn {
+    background: var(--arancio); color: white;
+    border: none; border-radius: 8px; padding: 13px 28px;
+    font-size: 16px; font-family: Arial, Helvetica, sans-serif;
+    cursor: pointer; margin-top: 16px;
+    transition: background var(--trans), box-shadow var(--trans);
+  }
+  .restart-btn:hover { background: #c55e0d; box-shadow: 0 4px 14px rgba(232,113,26,0.35); }
+
+  /* Responsive */
+  @media (max-width: 700px) {
+    #sidebar { display: none; }
+    header { flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-brand">ACME Bus Services · Data Governance</div>
+  <div class="header-title">🔍 Indagine BusTrack — Chi chiami?</div>
+  <div id="progress-bar-wrap">
+    <span id="progress-label">Atto 1/3</span>
+    <div id="progress-track"><div id="progress-fill"></div></div>
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar">
+    <div class="sidebar-section">
+      <h3>Ruoli — clicca per info</h3>
+      <div class="role-pill" onclick="showRole('do')">
+        <span class="role-badge rb-do">DO</span> Data Owner
+      </div>
+      <div class="role-pill" onclick="showRole('bds')">
+        <span class="role-badge rb-bds">BDS</span> Business Data Steward
+      </div>
+      <div class="role-pill" onclick="showRole('dc')">
+        <span class="role-badge rb-dc">DC</span> Data Custodian
+      </div>
+      <div class="role-pill" onclick="showRole('dgc')">
+        <span class="role-badge rb-dgc">DGC</span> Data Gov. Council
+      </div>
+      <div class="role-pill" onclick="showRole('co')">
+        <span class="role-badge rb-co">CO</span> Compliance
+      </div>
+      <div class="role-pill" onclick="showRole('ub')">
+        <span class="role-badge rb-ub">UB</span> Utente Business
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <h3>Cronologia scelte</h3>
+      <div id="storia"></div>
+    </div>
+    <div class="sidebar-section">
+      <h3>Punteggio</h3>
+      <div style="font-size: 24px; font-weight: bold; color: var(--blu-scuro);" id="score-disp">0 pt</div>
+      <div style="font-size: 11px; color: var(--testo-light); margin-top: 3px;">scelte corrette: <span id="correct-count">0</span> / <span id="total-count">0</span></div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main id="main">
+    <div id="scene-wrap">
+      <!-- Scenes rendered here by JS -->
+    </div>
+  </main>
+</div>
+
+<!-- ROLE MODAL -->
+<div id="role-modal" onclick="closeRole(event)">
+  <div class="role-modal-box" id="role-modal-box">
+    <button class="modal-close" onclick="document.getElementById('role-modal').classList.remove('show')">×</button>
+    <div id="role-modal-content"></div>
+  </div>
+</div>
+
+<!-- FEEDBACK OVERLAY -->
+<div id="feedback-overlay">
+  <div class="feedback-box" id="feedback-box">
+    <h3 id="feedback-title"></h3>
+    <p id="feedback-text"></p>
+    <div class="consequence" id="feedback-consequence"></div>
+    <button class="feedback-btn" id="feedback-btn" onclick="closeFeedback()">Capito — continua</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// DATI RUOLI
+// ═══════════════════════════════════════════════════════════════════════════
+const ROLES = {
+  do: {
+    sigla: 'DO', colore: 'rb-do',
+    nome: 'Data Owner',
+    persona: 'Direttore Operativo — ACME Bus Services',
+    desc: 'Il Data Owner è il proprietario del dato nel dominio di business. Ha l\'accountability finale sulla qualità, integrità e uso corretto dei dati del suo dominio. Non esegue operazioni tecniche: delega il fare, non l\'ownership.',
+    fa: ['Definisce le regole di qualità del dominio dati', 'Approva chi può accedere ai dati e a quali condizioni', 'Risolve i conflitti di interpretazione sulle definizioni', 'Risponde al DGC per le violazioni di policy'],
+    nonFa: ['Non esegue modifiche tecniche nei sistemi', 'Non si occupa di GDPR in prima persona (è il DPO)', 'Non gestisce le pipeline di ETL o le dashboard'],
+    acme: 'Il Direttore Operativo è il DO del dominio Flotta/Ricavi. Se BusTrack e l\'ERP mostrano ricavi diversi, è lui che risponde al CDA del perché e approva la definizione corretta di "ricavo registrato".'
+  },
+  bds: {
+    sigla: 'BDS', colore: 'rb-bds',
+    nome: 'Business Data Steward',
+    persona: 'Analista Operazioni — ACME Bus Services',
+    desc: 'Il Business Data Steward è il presidio operativo della qualità dei dati nel dominio di business. Conosce i dati meglio di chiunque altro: sa come vengono generati, dove si trovano, quali regole li governano. È il tramite tra il DO e l\'IT.',
+    fa: ['Monitora la qualità dei dati quotidianamente', 'Documenta le definizioni nel Business Glossary', 'Identifica anomalie e le segnala al DO', 'Coordina con il DC (IT) per le correzioni tecniche'],
+    nonFa: ['Non approva modifiche agli accessi (spetta al DO)', 'Non modifica direttamente i dati nei sistemi produzione', 'Non definisce policy cross-dominio (spetta al DGC)'],
+    acme: 'L\'Analista Operazioni è il BDS del dominio Flotta/Ricavi. Se c\'è un gap di €22.000 tra BusTrack e ERP, è lui il primo che sa dove guardare: conosce le regole di calcolo di entrambi i sistemi e può identificare la causa dell\'anomalia.'
+  },
+  dc: {
+    sigla: 'DC', colore: 'rb-dc',
+    nome: 'Data Custodian / IT',
+    persona: 'Responsabile IT — ACME Bus Services',
+    desc: 'Il Data Custodian (spesso nel team IT) è responsabile dell\'implementazione tecnica delle regole sui dati nei sistemi. Esegue le modifiche, gestisce gli accessi a livello tecnico, mantiene i pipeline di dati.',
+    fa: ['Implementa le regole di qualità nei sistemi', 'Gestisce gli accessi tecnici ai database', 'Mantiene i pipeline di ETL e integrazione', 'Segnala al BDS le anomalie tecniche rilevate'],
+    nonFa: ['Non decide le regole di business (spetta a DO/BDS)', 'Non approva l\'uso dei dati per nuove funzionalità', 'Non risolve conflitti di definizione tra domini'],
+    acme: 'Il Responsabile IT di ACME gestisce BusTrack e il modulo ERP. Se il gap nasce da un problema tecnico di sincronizzazione, è lui che lo risolve. Ma deve aspettare che DO e BDS abbiano chiarito quale definizione è quella corretta.'
+  },
+  dgc: {
+    sigla: 'DGC', colore: 'rb-dgc',
+    nome: 'Data Governance Council',
+    persona: 'Comitato di Data Governance — ACME Bus Services',
+    desc: 'Il Data Governance Council è il comitato decisionale di governance dei dati a livello aziendale. Interviene su questioni cross-dominio, conflitti tra domini diversi, e definisce le policy che si applicano a tutta l\'organizzazione.',
+    fa: ['Approva le policy di Data Governance aziendali', 'Risolve conflitti tra domini diversi', 'Supervisiona il rispetto delle policy', 'Coordina i Data Owner di domini diversi'],
+    nonFa: ['Non gestisce anomalie interne a un singolo dominio', 'Non esegue analisi operative sui dati', 'Non sostituisce il DO nelle decisioni di dominio'],
+    acme: 'Il DGC di ACME interviene se il gap tra BusTrack e ERP coinvolge due domini diversi (es. Operativo e Amministrativo) e i loro DO non riescono a trovare accordo sulla definizione. Per un\'anomalia interna al dominio Operativo, non è il primo interlocutore.'
+  },
+  co: {
+    sigla: 'CO', colore: 'rb-co',
+    nome: 'Compliance',
+    persona: 'Funzione Compliance — ACME Bus Services',
+    desc: 'La funzione Compliance verifica che i processi aziendali rispettino gli obblighi normativi: GDPR, normative di settore (trasporti), obblighi di rendicontazione. Interviene quando c\'è un rischio normativo concreto.',
+    fa: ['Verifica la conformità dei trattamenti al GDPR', 'Controlla gli obblighi di rendicontazione verso l\'autorità di settore', 'Partecipa ai processi di Data Governance quando c\'è impatto normativo', 'Segnala violazioni all\'organo di controllo'],
+    nonFa: ['Non risolve anomalie nei dati operativi', 'Non definisce le regole di qualità dei dati di dominio', 'Non è coinvolta se il problema è puramente interno e senza impatto normativo'],
+    acme: 'La Compliance di ACME entra in gioco se il gap di €22.000 nei ricavi rischia di produrre una rendicontazione errata verso l\'autorità regolatoria dei trasporti, o se emergono trattamenti di dati personali non conformi al GDPR. Non è il primo contatto per un\'anomalia operativa interna.'
+  },
+  ub: {
+    sigla: 'UB', colore: 'rb-ub',
+    nome: 'Utente Business',
+    persona: 'Analista Reporting / Data Consumer — ACME Bus Services',
+    desc: 'L\'Utente Business è chi usa i dati per il proprio lavoro: prepara report, alimenta dashboard, prende decisioni basate sui dati. Non modifica i dati a monte, ma segnala anomalie al BDS quando le rileva.',
+    fa: ['Usa i dati per report, analisi, decisioni operative', 'Segnala al BDS le anomalie che riscontra nelle sue analisi', 'Verifica la coerenza dei dati nel proprio perimetro di uso'],
+    nonFa: ['Non modifica i dati nei sistemi sorgente', 'Non ha accountability sul dato (spetta al DO)', 'Non definisce le regole di qualità del dato'],
+    acme: 'L\'analista che prepara il report mensile per il CDA è un UB. È lui che ha scoperto il gap di €22.000 confrontando il report BusTrack con la chiusura ERP. Il suo ruolo finisce qui: deve segnalarlo, non risolverlo.'
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STRUTTURA SCENE
+// tipo: 'choice' | 'feedback_wrong' | 'info' | 'final'
+// Per 'choice': choices[] = {text, role?, correct, feedback_wrong?, next}
+// ═══════════════════════════════════════════════════════════════════════════
+const SCENES = {
+
+  // ─── ATTO 1: IL PROBLEMA EMERGE ──────────────────────────────────────────
+
+  start: {
+    act: 'Atto 1 — Il problema emerge', progress: 5,
+    title: 'Lunedì mattina, ufficio Direttore Operativo',
+    body: `<p>È il primo lunedì del mese. Marco Ferretti, CFO di ACME Bus Services, è appena uscito
+    dalla riunione settimanale con il CDA. Sul tavolo del Direttore Operativo — il tuo tavolo —
+    c'è un appunto scritto a mano:</p>
+    <div class="infobox warn">
+      <b>📋 Nota interna — URGENTE</b>
+      "Il report BusTrack di ottobre mostra ricavi da corse pari a <strong>€ 1.247.000</strong>.
+      La chiusura ERP dello stesso mese segna <strong>€ 1.225.000</strong>.
+      Differenza: <strong>€ 22.000</strong>. Il CDA vuole una spiegazione entro venerdì."
+    </div>
+    <p>Come Data Owner del dominio Flotta/Operativo, l'accountability di questa anomalia è tua.
+    Ma non lavori da solo: hai un team di ruoli di Data Governance a disposizione.</p>
+    <p><strong>Prima mossa: a chi ti rivolgi per prima cosa?</strong></p>`,
+    choices: [
+      {
+        text: 'Chiamo il Responsabile IT (DC) — se c\'è una differenza tra due sistemi, è sicuramente un bug tecnico.',
+        role: 'DC',
+        correct: false,
+        feedback_title: '⚠ Troppo presto per l\'IT',
+        feedback_text: 'Coinvolgere il DC come primo passo è un errore frequente: si presuppone che il problema sia tecnico prima di aver capito se lo è davvero.',
+        feedback_consequence: 'Il Responsabile IT controlla i log di sincronizzazione e non trova errori. Ti risponde dopo 4 ore: "I sistemi si parlano correttamente. Il dato in BusTrack è quello che BusTrack calcola." Non sei più avanti di prima — e hai perso mezza giornata.',
+        next: 'start'
+      },
+      {
+        text: 'Convoco subito il Data Governance Council — è un problema cross-aziendale.',
+        role: 'DGC',
+        correct: false,
+        feedback_title: '⚠ Il DGC non è un pronto soccorso',
+        feedback_text: 'Il DGC interviene su conflitti cross-dominio e su violazioni di policy che richiedono una decisione di governance aziendale. Un\'anomalia interna al tuo dominio non è la sede giusta.',
+        feedback_consequence: 'La riunione del DGC viene fissata per giovedì — tre giorni dopo. Nel frattempo il problema rimane aperto. Il Presidente del DGC ti segnala che dovresti prima gestire l\'istruttoria interna al dominio.',
+        next: 'start'
+      },
+      {
+        text: 'Contatto l\'Analista Operazioni (BDS) — è lui che conosce entrambi i sistemi nel dettaglio.',
+        role: 'BDS',
+        correct: true,
+        next: 'atto1_bds'
+      },
+      {
+        text: 'Mando una mail a tutto il team — problema noto a tutti, soluzione più rapida.',
+        role: null,
+        correct: false,
+        feedback_title: '⚠ La governance non funziona per mail collettive',
+        feedback_text: 'Comunicare a tutti senza seguire i ruoli RACI crea confusione su chi deve fare cosa. Tutti si sentono coinvolti, nessuno si sente responsabile.',
+        feedback_consequence: 'Ricevi 12 risposte in un\'ora. L\'analista del marketing propone di "allineare manualmente i due report". Il responsabile acquisti chiede se il problema riguarda anche le sue fatture. Hai aperto una discussione che non sai come chiudere.',
+        next: 'start'
+      }
+    ]
+  },
+
+  atto1_bds: {
+    act: 'Atto 1 — Il problema emerge', progress: 20,
+    title: 'L\'Analista Operazioni risponde',
+    body: `<p>Chiami l\'Analista Operazioni — il Business Data Steward del tuo dominio. Risponde
+    in meno di cinque minuti:</p>
+    <div class="infobox ok">
+      <b>💬 Analista Operazioni (BDS)</b>
+      "Sì, l\'anomalia la conosco. L\'ho vista la settimana scorsa ma non ero sicuro fosse rilevante.
+      BusTrack registra il ricavo al momento della <em>validazione del biglietto</em> a bordo.
+      L\'ERP lo registra al momento dell\'<em>incasso effettivo</em>, che in alcuni casi avviene
+      il giorno successivo per i pagamenti digitali. In ottobre abbiamo avuto 3 giorni festivi
+      consecutivi a fine mese — il gap potrebbe essere quello."
+    </div>
+    <p>Questa è la prima ipotesi: si tratta di un problema di <strong>definizione del momento
+    di riconoscimento del ricavo</strong>, non di un bug tecnico.</p>
+    <p>Il BDS aggiunge: "Ma ci sono anche alcune corse del deposito di Napoli che non vedo
+    riflesse nell\'ERP. Potrebbero essere un\'altra causa."</p>
+    <p><strong>Hai due ipotesi. Come procedi?</strong></p>`,
+    choices: [
+      {
+        text: 'Chiedo al BDS di verificare entrambe le ipotesi in parallelo e di prepararmi un\'analisi entro domani.',
+        role: 'BDS',
+        correct: true,
+        next: 'atto1_analisi'
+      },
+      {
+        text: 'Chiedo alla Compliance di verificare se il diverso momento di riconoscimento del ricavo viola le norme contabili.',
+        role: 'CO',
+        correct: false,
+        feedback_title: '⚠ La Compliance entra dopo, non prima',
+        feedback_text: 'Prima di coinvolgere la Compliance è necessario capire qual è la causa dell\'anomalia. Portarle due ipotesi non verificate genera lavoro inutile e può creare allarme normativo prematuro.',
+        feedback_consequence: 'La responsabile Compliance risponde che "dovrà approfondire le implicazioni con un consulente esterno" e stima 2 settimane. Nel frattempo il CDA aspetta la tua spiegazione per venerdì.',
+        next: 'atto1_bds'
+      },
+      {
+        text: 'Chiamo il DC (IT) per verificare i flussi di dati tra BusTrack e ERP, intanto che il BDS analizza le corse di Napoli.',
+        role: 'DC',
+        correct: false,
+        feedback_title: '⚠ Il DC non ha ancora informazioni sufficienti',
+        feedback_text: 'Coinvolgere il DC prima che il BDS abbia identificato la causa specifica significa chiedere all\'IT di cercare un ago in un pagliaio senza sapere in quale pagliaio.',
+        feedback_consequence: 'Il DC ti dice che controllerà i log di sincronizzazione ma non sa cosa cercare. Passa la mattinata a produrre dati tecnici che non riescono a isolare il problema senza una guida da parte del BDS.',
+        next: 'atto1_bds'
+      }
+    ]
+  },
+
+  atto1_analisi: {
+    act: 'Atto 1 — Il problema emerge', progress: 35,
+    title: 'L\'analisi del BDS — risultati',
+    body: `<p>Il giorno dopo, il BDS ti invia la sua analisi.</p>
+    <div class="infobox dati">
+      <b>📊 Report BDS — Analisi anomalia ricavi ottobre</b>
+      <strong>Causa A — Gap temporale (giorni festivi fine mese):</strong><br>
+      BusTrack: €18.400 validati il 31 ottobre → incassati il 2 novembre → contabilizzati in ERP a novembre.<br>
+      Impatto stimato: <strong>€ 18.400</strong><br><br>
+      <strong>Causa B — Corse deposito Napoli non trasmesse:</strong><br>
+      14 corse del 28-29 ottobre risultano in BusTrack ma assenti dall\'ERP.
+      Valore: <strong>€ 3.600</strong><br><br>
+      Totale spiegato: <strong>€ 22.000</strong> ✓
+    </div>
+    <p>Le due cause spiegano esattamente il gap. Ora hai le informazioni per decidere.</p>
+    <p>La Causa A è un problema di <strong>definizione nel Business Glossary</strong>:
+    "ricavo di competenza ottobre" non è definito in modo univoco tra BusTrack e ERP.
+    La Causa B è un problema <strong>tecnico di trasmissione dati</strong> dal deposito di Napoli.</p>
+    <p><strong>Come assegni le responsabilità per risolvere le due cause?</strong></p>`,
+    choices: [
+      {
+        text: 'Per la Causa A: chiedo al BDS di aggiornare la definizione nel Glossario e di allineare i due sistemi. Per la Causa B: chiedo al DC di correggere il flusso.',
+        role: 'BDS',
+        correct: false,
+        feedback_title: '⚠ Il BDS non approva — può solo proporre',
+        feedback_text: 'Modificare la definizione ufficiale nel Business Glossary è una decisione con impatto aziendale: non può essere presa dal BDS da solo. Serve la tua approvazione come DO.',
+        feedback_consequence: 'Il BDS aggiorna la definizione nel Glossario ma nessuno lo sa. Due settimane dopo il CFO usa ancora la vecchia definizione in una presentazione al CDA. La modifica non è stata formalizzata con la tua firma.',
+        next: 'atto1_analisi'
+      },
+      {
+        text: 'Per la Causa A: il BDS propone la nuova definizione, io la approvo e la formalizzo. Per la Causa B: coordino BDS e DC per il fix tecnico.',
+        role: 'DO',
+        correct: true,
+        next: 'atto2_start'
+      },
+      {
+        text: 'Rimando tutto al DGC: se le definizioni non sono allineate tra BusTrack e ERP è un problema di policy aziendale.',
+        role: 'DGC',
+        correct: false,
+        feedback_title: '⚠ Il DGC non gestisce singole definizioni di dominio',
+        feedback_text: 'La definizione di "ricavo di competenza" nel dominio Flotta/Operativo è di tua competenza come DO. Il DGC interviene solo se la stessa definizione crea conflitti con un altro dominio.',
+        feedback_consequence: 'Il DGC ti risponde che la questione "appartiene al dominio Operativo" e che dovresti risolverla tu. Hai perso due giorni e sei ancora al punto di partenza.',
+        next: 'atto1_analisi'
+      }
+    ]
+  },
+
+  // ─── ATTO 2: LA DEFINIZIONE ───────────────────────────────────────────────
+
+  atto2_start: {
+    act: 'Atto 2 — La definizione corretta', progress: 50,
+    title: 'Chi scrive la nuova definizione?',
+    body: `<p>Hai approvato il piano: il BDS propone la nuova definizione di "ricavo di competenza
+    mensile", tu la approvi come DO, e il DC si occupa del fix tecnico per le corse di Napoli.</p>
+    <p>Il BDS ti manda una bozza di definizione:</p>
+    <div class="infobox dati">
+      <b>📝 Proposta definizione — BDS</b>
+      <em>"Ricavo di competenza mensile: importo totale delle corse validate a bordo nel mese
+      di riferimento, indipendentemente dalla data di incasso, calcolato in base al tariffario
+      vigente alla data di validazione."</em>
+    </div>
+    <p>La definizione è chiara e operativamente precisa. Tuttavia, il BDS ti segnala un problema:</p>
+    <div class="infobox warn">
+      <b>⚠ Nota del BDS</b>
+      "Se adottiamo questa definizione, il nostro dato di ricavi mensili non sarà più allineato
+      con quello che usa l\'ufficio Amministrativo-Finanziario per la chiusura di bilancio.
+      Loro usano il dato ERP (incasso effettivo). Potrebbe creare discrepanze nei report al CDA."
+    </div>
+    <p><strong>Cosa fai?</strong></p>`,
+    choices: [
+      {
+        text: 'Approvo la definizione così com\'è: la chiarezza operativa è prioritaria. L\'ufficio Amministrativo si adatterà.',
+        role: 'DO',
+        correct: false,
+        feedback_title: '⚠ Non puoi imporre una definizione che impatta un altro dominio',
+        feedback_text: 'Il dominio Amministrativo-Finanziario ha il suo DO. Se la tua definizione crea un conflitto con il loro dato di bilancio, serve un accordo tra domini — non una decisione unilaterale.',
+        feedback_consequence: 'Due mesi dopo il CFO presenta al CDA due numeri di ricavi diversi per lo stesso mese, estratti da due report diversi. L\'audit interno solleva una non-conformità: le definizioni non sono allineate tra Operativo e Finanziario.',
+        next: 'atto2_start'
+      },
+      {
+        text: 'Chiedo al DGC di arbitrare: c\'è un conflitto tra la mia definizione operativa e quella del dominio Finanziario.',
+        role: 'DGC',
+        correct: true,
+        next: 'atto2_dgc'
+      },
+      {
+        text: 'Chiedo al DC di creare un campo "ricavo rettificato" in ERP che allinea i due valori automaticamente.',
+        role: 'DC',
+        correct: false,
+        feedback_title: '⚠ Il problema è di governance, non tecnico',
+        feedback_text: 'Creare un campo tecnico che "allinea" due definizioni diverse non risolve il problema: nasconde la mancanza di un accordo di business sotto un automatismo IT. Se la logica di allineamento è sbagliata, nessuno lo vedrà.',
+        feedback_consequence: 'Il DC implementa il campo. Funziona per 3 mesi. Poi la formula di calcolo viene modificata da un aggiornamento di BusTrack e il campo smette di allinearsi. Nessuno se ne accorge per due trimestri.',
+        next: 'atto2_start'
+      }
+    ]
+  },
+
+  atto2_dgc: {
+    act: 'Atto 2 — La definizione corretta', progress: 65,
+    title: 'Il DGC arbitra tra i domini',
+    body: `<p>Hai portato la questione al Data Governance Council. Il DGC convoca una sessione
+    con te (DO del dominio Operativo) e il responsabile del dominio Amministrativo-Finanziario.</p>
+    <p>Dopo il confronto, il DGC emette questa decisione:</p>
+    <div class="infobox ok">
+      <b>✅ Decisione DGC — Definizione unificata</b>
+      Il Glossario aziendale adotterà <strong>due definizioni distinte con label esplicite</strong>:<br><br>
+      • <em>"Ricavo operativo mensile"</em>: data di validazione a bordo (uso operativo/BusTrack)<br>
+      • <em>"Ricavo contabile mensile"</em>: data di incasso (uso bilancio/ERP)<br><br>
+      I report al CDA riporteranno entrambe le voci con nota esplicativa.
+      Responsabile dell\'aggiornamento: BDS dominio Operativo per la prima, BDS dominio
+      Finanziario per la seconda.
+    </div>
+    <p>Ottima mossa. Ora rimane la Causa B: le 14 corse del deposito di Napoli non trasmesse all\'ERP.
+    Il BDS ti dice che il problema è tecnico: i dati non arrivano dal sistema locale di Napoli.</p>
+    <p><strong>Come gestisci la Causa B?</strong></p>`,
+    choices: [
+      {
+        text: 'Chiedo al DC di indagare il problema tecnico di trasmissione e di proporre una soluzione.',
+        role: 'DC',
+        correct: true,
+        next: 'atto2_dc'
+      },
+      {
+        text: 'Chiedo al BDS di parlare direttamente con il tecnico del deposito di Napoli per risolvere il problema.',
+        role: 'BDS',
+        correct: false,
+        feedback_title: '⚠ Il BDS non ha le competenze tecniche per questo',
+        feedback_text: 'Il BDS conosce le regole di business sui dati, non le architetture tecniche dei sistemi. Il fix di un problema di trasmissione dati tra sistemi è competenza del DC.',
+        feedback_consequence: 'Il BDS parla con il tecnico di Napoli ma non capisce il linguaggio tecnico. Il problema rimane irrisolto e il BDS torna da te dopo due giorni per dirti che "bisognerebbe coinvolgere l\'IT".',
+        next: 'atto2_dgc'
+      },
+      {
+        text: 'Chiedo alla Compliance di verificare se la mancata trasmissione viola obblighi di rendicontazione.',
+        role: 'CO',
+        correct: false,
+        feedback_title: '⚠ Prima si risolve, poi si valuta il rischio normativo',
+        feedback_text: 'Coinvolgere la Compliance prima di aver risolto il problema tecnico è prematuro. La Compliance valuta il rischio normativo, non lo risolve. Il problema tecnico deve essere risolto dal DC.',
+        feedback_consequence: 'La Compliance avvia una verifica formale e produce un report di rischio. Nel frattempo il problema tecnico rimane aperto. Hai aggiunto lavoro senza avvicinarti alla soluzione.',
+        next: 'atto2_dgc'
+      }
+    ]
+  },
+
+  atto2_dc: {
+    act: 'Atto 2 — La definizione corretta', progress: 78,
+    title: 'Il DC indaga il problema tecnico',
+    body: `<p>Il Responsabile IT (DC) indaga il flusso di trasmissione dati dal deposito di Napoli.</p>
+    <div class="infobox dati">
+      <b>🔧 Analisi tecnica DC</b>
+      "Il sistema locale di Napoli usa ancora la versione 2.1 di BusTrack.
+      Dalla versione 2.3 il protocollo di trasmissione verso l\'ERP è cambiato.
+      Il deposito non è stato aggiornato. Le 14 corse si trovano nel DB locale di Napoli
+      ma non vengono mai inviate."
+    </div>
+    <p>Il DC può fare l\'aggiornamento tecnico, ma ti chiede:</p>
+    <div class="infobox warn">
+      <b>⚠ Richiesta DC</b>
+      "L\'aggiornamento richiede 2 ore di fermo sistema domenica mattina.
+      Ho bisogno di un'autorizzazione formale da parte tua per procedere,
+      e di sapere se i dati delle 14 corse vanno recuperati retroattivamente nell\'ERP
+      o vanno trattati come perdita storica."
+    </div>
+    <p><strong>Come risponde il DO?</strong></p>`,
+    choices: [
+      {
+        text: 'Autorizzo l\'aggiornamento e chiedo al BDS di lavorare con il DC per il recupero retroattivo dei dati di ottobre.',
+        role: 'DO',
+        correct: true,
+        next: 'atto3_start'
+      },
+      {
+        text: 'Dico al DC di procedere autonomamente: è una questione tecnica, decide lui.',
+        role: 'DC',
+        correct: false,
+        feedback_title: '⚠ Il DO non può delegare le decisioni di accountability',
+        feedback_text: 'L\'autorizzazione a un intervento che modifica dati storici in produzione e causa un fermo sistema è una decisione di accountability: spetta al DO. Il DC esegue, ma non può decidere da solo.',
+        feedback_consequence: 'Il DC procede. L\'aggiornamento va bene ma i dati retroattivi non vengono recuperati, perché il DC non sapeva se farlo. I €3.600 di ottobre rimangono mancanti dall\'ERP.',
+        next: 'atto2_dc'
+      },
+      {
+        text: 'Rimando la decisione al DGC: un fermo sistema domenica è una decisione aziendale.',
+        role: 'DGC',
+        correct: false,
+        feedback_title: '⚠ Un fermo tecnico interno al tuo dominio non richiede il DGC',
+        feedback_text: 'Il fermo sistema del deposito di Napoli è un\'operazione di manutenzione interna al dominio Operativo. Non è una questione di policy cross-aziendale. L\'escalation al DGC non è proporzionata.',
+        feedback_consequence: 'Il DGC non risponde per 3 giorni — la questione non rientra nella loro agenda. Il DC rimane in attesa. Venerdì arriva senza una soluzione alla Causa B.',
+        next: 'atto2_dc'
+      }
+    ]
+  },
+
+  // ─── ATTO 3: LA RISOLUZIONE ───────────────────────────────────────────────
+
+  atto3_start: {
+    act: 'Atto 3 — La risoluzione', progress: 88,
+    title: 'Venerdì: il report per il CDA',
+    body: `<p>Venerdì mattina. Hai in mano tutti gli elementi:</p>
+    <div class="infobox ok">
+      <b>✅ Stato della situazione</b>
+      • Causa A (€18.400): risolta con due definizioni distinte nel Glossario, approvate dal DGC<br>
+      • Causa B (€3.600): aggiornamento tecnico eseguito, dati ottobre recuperati retroattivamente nell\'ERP<br>
+      • Il gap di €22.000 è stato interamente spiegato e corretto
+    </div>
+    <p>Devi ora predisporre la risposta al CDA. Marco Ferretti (CFO) ti chiede
+    anche di indicare chi ha fatto cosa nell\'indagine — vuole capire come funziona
+    la governance dei dati in pratica.</p>
+    <p><strong>Come costruisci la RACI dell\'indagine che hai appena condotto?</strong></p>`,
+    choices: [
+      {
+        text: 'Preparo una RACI con: DO=A su tutte le decisioni, BDS=R sull\'analisi e sulla proposta di definizione, DC=R sul fix tecnico, DGC=A sulla definizione cross-dominio.',
+        role: 'DO',
+        correct: true,
+        next: 'finale'
+      },
+      {
+        text: 'Preparo una RACI con: BDS=A sull\'analisi, DC=A sul fix tecnico, DGC=A sulla definizione. Io come DO supervisiono.',
+        role: 'DO',
+        correct: false,
+        feedback_title: '⚠ L\'accountability non si distribuisce tra chi esegue',
+        feedback_text: 'Assegnare la A a chi esegue (BDS, DC) è l\'errore classico: confonde Responsible con Accountable. Il DO ha la A su tutto ciò che riguarda il suo dominio — delega l\'esecuzione, non la responsabilità.',
+        feedback_consequence: 'Il CFO legge la RACI e chiede: "Se un\'analisi futura mostra di nuovo un gap, chi risponde?" Nessuno sa rispondere, perché l\'accountability è distribuita tra chi ha eseguito.',
+        next: 'atto3_start'
+      },
+      {
+        text: 'Non preparo una RACI: è un\'indagine una-tantum, non un processo ricorrente.',
+        role: null,
+        correct: false,
+        feedback_title: '⚠ Documentare è parte della governance',
+        feedback_text: 'La RACI non è solo uno strumento per i processi ricorrenti. Documentare chi ha avuto quale ruolo in un\'indagine è essenziale per l\'audit trail e per replicare il processo correttamente la prossima volta.',
+        feedback_consequence: 'Tre mesi dopo c\'è un\'anomalia simile. Nessuno ricorda chi aveva investigato la precedente o con quale approccio. Si riparte da zero.',
+        next: 'atto3_start'
+      }
+    ]
+  },
+
+  finale: {
+    act: 'Fine', progress: 100,
+    type: 'final'
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════════════════
+let state = {
+  current: 'start',
+  score: 0,
+  correct: 0,
+  total: 0,
+  history: []   // {scene_id, choice_text, correct}
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════════════════════════
+function render() {
+  const scene = SCENES[state.current];
+  if (!scene) return;
+
+  document.getElementById('progress-fill').style.width = (scene.progress || 0) + '%';
+  document.getElementById('progress-label').textContent = scene.act || '';
+
+  updateSidebar();
+
+  if (scene.type === 'final') {
+    renderFinal();
+    return;
+  }
+
+  const wrap = document.getElementById('scene-wrap');
+  const letters = 'ABCD';
+
+  let html = `<div class="act-label">${scene.act}</div>
+  <div class="scene-card">
+    <h2>${scene.title}</h2>
+    <div class="scene-body">${scene.body}</div>`;
+
+  if (scene.choices && scene.choices.length) {
+    html += `<div class="choices">`;
+    scene.choices.forEach((c, i) => {
+      const roleLabel = c.role ? `<span class="choice-role">Ruolo: ${c.role} — ${ROLES[c.role.toLowerCase()]?.nome || ''}</span>` : '';
+      html += `<button class="choice-btn" onclick="choose(${i})">
+        <span class="choice-letter">${letters[i]}</span>
+        <span class="choice-text">${c.text}${roleLabel}</span>
+      </button>`;
+    });
+    html += `</div>`;
+  }
+
+  html += `</div>`;
+  wrap.innerHTML = html;
+  wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function renderFinal() {
+  const pct = state.total > 0 ? Math.round((state.correct / state.total) * 100) : 0;
+  const emoji = pct >= 80 ? '🏆' : pct >= 50 ? '👍' : '📚';
+  const verdict = pct >= 80
+    ? 'Indagine completata con piena padronanza dei ruoli DG!'
+    : pct >= 50
+    ? 'Buona padronanza — qualche incertezza sui confini tra ruoli.'
+    : 'Da rivedere: i ruoli DG hanno confini precisi che vale la pena approfondire.';
+
+  const wrap = document.getElementById('scene-wrap');
+  wrap.innerHTML = `
+  <div class="scene-card final-card">
+    <div class="finale-emoji">${emoji}</div>
+    <h2>Indagine conclusa</h2>
+    <p>${verdict}</p>
+
+    <div class="score-banner">
+      <div>
+        <div class="score-num">${state.score} pt</div>
+        <div class="score-label">punteggio finale</div>
+      </div>
+      <div>
+        <div style="font-size:22px;font-weight:bold">${state.correct}/${state.total}</div>
+        <div class="score-label">scelte corrette al primo tentativo</div>
+      </div>
+    </div>
+
+    <div class="raci-final">
+      <b style="font-size:14px;margin-bottom:10px;display:block">RACI dell\'indagine — versione corretta</b>
+      <table>
+        <tr>
+          <th>Attività</th><th>A</th><th>R</th><th>C</th><th>I</th>
+        </tr>
+        <tr><td>Identificare la causa dell\'anomalia</td><td>DO</td><td>BDS</td><td>—</td><td>DC, CFO</td></tr>
+        <tr><td>Proporre la nuova definizione di "ricavo"</td><td>DO</td><td>BDS</td><td>DGC</td><td>CO</td></tr>
+        <tr><td>Arbitrare il conflitto cross-dominio</td><td>DGC</td><td>DGC</td><td>DO x2</td><td>CFO</td></tr>
+        <tr><td>Fix tecnico deposito Napoli</td><td>DO</td><td>DC</td><td>BDS</td><td>—</td></tr>
+        <tr><td>Comunicare il risultato al CDA</td><td>DO</td><td>DO</td><td>BDS, DC</td><td>CO</td></tr>
+      </table>
+    </div>
+
+    <p style="font-size:13px;color:var(--testo-light);margin-top:10px">
+      Guarda la cronologia delle tue scelte nella barra laterale sinistra per rivedere i punti critici.
+    </p>
+    <button class="restart-btn" onclick="restart()">🔄 Ricomincia l\'indagine</button>
+  </div>`;
+}
+
+function updateSidebar() {
+  document.getElementById('score-disp').textContent = state.score + ' pt';
+  document.getElementById('correct-count').textContent = state.correct;
+  document.getElementById('total-count').textContent = state.total;
+
+  const el = document.getElementById('storia');
+  el.innerHTML = state.history.map(h => `
+    <div class="storia-item ${h.correct ? 'ok' : 'err'}" title="${h.choice}">
+      ${h.correct ? '✓' : '✗'} ${h.scene}
+      <span>${h.choice.substring(0, 38)}…</span>
+    </div>`).join('') || '<div style="font-size:11px;color:var(--testo-light);padding:4px">Nessuna scelta ancora</div>';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CHOICE HANDLER
+// ═══════════════════════════════════════════════════════════════════════════
+function choose(idx) {
+  const scene = SCENES[state.current];
+  const choice = scene.choices[idx];
+  state.total++;
+
+  state.history.push({
+    scene: scene.title,
+    choice: choice.text,
+    correct: choice.correct
+  });
+
+  if (choice.correct) {
+    state.correct++;
+    state.score += 10;
+    state.current = choice.next;
+    render();
+  } else {
+    showFeedback(choice);
+  }
+
+  updateSidebar();
+}
+
+function showFeedback(choice) {
+  const overlay = document.getElementById('feedback-overlay');
+  const box = document.getElementById('feedback-box');
+
+  box.className = 'feedback-box wrong';
+  document.getElementById('feedback-title').textContent = choice.feedback_title || '⚠ Scelta non ottimale';
+  document.getElementById('feedback-text').textContent = choice.feedback_text || '';
+  const con = document.getElementById('feedback-consequence');
+  con.textContent = choice.feedback_consequence || '';
+  con.className = 'consequence';
+
+  overlay.classList.add('show');
+}
+
+function closeFeedback() {
+  document.getElementById('feedback-overlay').classList.remove('show');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// RUOLI MODAL
+// ═══════════════════════════════════════════════════════════════════════════
+function showRole(key) {
+  const r = ROLES[key];
+  if (!r) return;
+  const el = document.getElementById('role-modal-content');
+  el.innerHTML = `
+    <h2><span class="role-badge ${r.colore}" style="display:inline-flex;margin-right:8px">${r.sigla}</span>${r.nome}</h2>
+    <div class="role-full">${r.persona}</div>
+    <p>${r.desc}</p>
+    <p><strong>Cosa fa:</strong></p>
+    <ul>${r.fa.map(f => `<li>${f}</li>`).join('')}</ul>
+    <p style="margin-top:10px"><strong>Cosa NON fa:</strong></p>
+    <ul>${r.nonFa.map(f => `<li>${f}</li>`).join('')}</ul>
+    <p style="margin-top:10px;padding:10px;background:var(--grigio-ch);border-radius:6px;font-size:13px">
+      <strong>Nel caso ACME:</strong><br>${r.acme}
+    </p>`;
+  document.getElementById('role-modal').classList.add('show');
+}
+
+function closeRole(e) {
+  if (e.target === document.getElementById('role-modal'))
+    document.getElementById('role-modal').classList.remove('show');
+}
+
+function restart() {
+  state = { current: 'start', score: 0, correct: 0, total: 0, history: [] };
+  render();
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>

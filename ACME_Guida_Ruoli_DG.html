@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guida ai Ruoli di Data Governance — ACME Bus Services</title>
+<style>
+  /* ── RESET & BASE ── */
+  :root {
+    --blu-scuro: #1F3864;
+    --blu-med: #2E74B5;
+    --blu-chiaro: #BDD7EE;
+    --blu-ch2: #DDEEFF;
+    --arancio: #E8711A;
+    --arancio-ch: #FDE9D9;
+    --verde: #375623;
+    --verde-ch: #E2EFDA;
+    --viola: #6B2D8B;
+    --viola-ch: #EFE2F7;
+    --marrone: #7F5200;
+    --marrone-ch: #FFF2CC;
+    --grigio-scuro: #595959;
+    --grigio-ch: #F2F2F2;
+    --grigio-med: #D9D9D9;
+    --bianco: #ffffff;
+    --testo: #1a1a2e;
+    --testo-light: #5a5a7a;
+
+    --do-col: #1F3864;
+    --bds-col: #2E74B5;
+    --dc-col: #375623;
+    --dgc-col: #6B2D8B;
+    --co-col: #7F4F00;
+    --ub-col: #E8711A;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+    color: var(--testo);
+    background: white;
+    line-height: 1.55;
+  }
+
+  /* ── COPERTINA / HEADER DOCUMENTO ── */
+  .doc-header {
+    background: var(--blu-scuro);
+    color: white;
+    padding: 32px 40px 28px;
+  }
+  .doc-header .sopratitolo {
+    font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.12em; opacity: 0.7; margin-bottom: 6px;
+  }
+  .doc-header h1 {
+    font-size: 26px; font-weight: bold; line-height: 1.25;
+    margin-bottom: 8px;
+  }
+  .doc-header .sottotitolo {
+    font-size: 14px; opacity: 0.85;
+  }
+  .doc-header .meta {
+    margin-top: 16px; font-size: 11px; opacity: 0.6;
+    display: flex; gap: 24px;
+  }
+
+  /* ── INDICE ── */
+  .indice {
+    background: var(--grigio-ch);
+    border-bottom: 2px solid var(--grigio-med);
+    padding: 18px 40px;
+    display: flex; flex-wrap: wrap; gap: 8px 20px;
+    font-size: 12px;
+  }
+  .indice a {
+    color: var(--blu-med); text-decoration: none;
+    padding: 3px 8px; border-radius: 3px;
+    border: 1px solid var(--blu-chiaro);
+    transition: background 0.15s;
+  }
+  .indice a:hover { background: var(--blu-chiaro); }
+
+  /* ── CONTENT AREA ── */
+  .content { padding: 32px 40px; max-width: 900px; margin: 0 auto; }
+
+  /* ── SEZIONE ── */
+  .section { margin-bottom: 48px; }
+  .section-title {
+    font-size: 13px; text-transform: uppercase;
+    letter-spacing: 0.1em; color: var(--testo-light);
+    margin-bottom: 18px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--grigio-med);
+  }
+
+  /* ── TABELLA COMPARATIVA ── */
+  .comparison-table {
+    width: 100%; border-collapse: collapse;
+    font-size: 12px; margin-bottom: 10px;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.08);
+    border-radius: 6px; overflow: hidden;
+  }
+  .comparison-table th {
+    padding: 10px 12px; text-align: left;
+    background: var(--blu-scuro); color: white;
+    font-size: 11px; font-weight: bold;
+  }
+  .comparison-table th.role-th {
+    width: 110px;
+  }
+  .comparison-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--grigio-med);
+    vertical-align: top;
+  }
+  .comparison-table tr:last-child td { border-bottom: none; }
+  .comparison-table tr:nth-child(even) td { background: #FAFAFA; }
+
+  .role-cell {
+    display: flex; align-items: center; gap: 8px;
+    font-weight: bold; font-size: 12px;
+  }
+  .role-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 34px; height: 22px; border-radius: 3px;
+    font-size: 10px; font-weight: bold; color: white;
+    flex-shrink: 0;
+  }
+  .rb-do  { background: var(--do-col); }
+  .rb-bds { background: var(--bds-col); }
+  .rb-dc  { background: var(--dc-col); }
+  .rb-dgc { background: var(--dgc-col); }
+  .rb-co  { background: var(--co-col); }
+  .rb-ub  { background: var(--ub-col); }
+
+  .checkmark { color: var(--verde); font-weight: bold; }
+  .crossmark { color: #999; }
+
+  /* ── CARD RUOLO ESTESA (DO, BDS) ── */
+  .role-card {
+    border-radius: 8px; overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+    margin-bottom: 28px;
+  }
+
+  .role-card-header {
+    display: flex; align-items: center; gap: 16px;
+    padding: 20px 24px;
+    color: white;
+  }
+  .role-card-header .badge-large {
+    width: 56px; height: 36px; border-radius: 5px;
+    background: rgba(255,255,255,0.25);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: bold;
+    flex-shrink: 0;
+  }
+  .role-card-header h2 { font-size: 20px; font-weight: bold; }
+  .role-card-header .persona { font-size: 12px; opacity: 0.8; margin-top: 2px; }
+
+  .role-card-body { padding: 20px 24px; background: white; }
+
+  .role-card-body .definizione {
+    font-size: 14px; line-height: 1.65;
+    margin-bottom: 16px; color: var(--testo);
+  }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .two-col-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+
+  .mini-box {
+    background: var(--grigio-ch);
+    border-radius: 6px; padding: 13px 14px;
+  }
+  .mini-box h4 {
+    font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.07em; color: var(--testo-light);
+    margin-bottom: 8px;
+  }
+  .mini-box ul { padding-left: 14px; }
+  .mini-box ul li { font-size: 12px; line-height: 1.6; margin-bottom: 4px; }
+
+  .mini-box.verde { background: var(--verde-ch); }
+  .mini-box.rosso { background: #FCE4D6; }
+  .mini-box.blu { background: var(--blu-ch2); }
+
+  /* Principio chiave */
+  .principio {
+    background: var(--blu-scuro); color: white;
+    border-radius: 6px; padding: 13px 16px;
+    font-size: 13px; line-height: 1.6;
+    margin-bottom: 16px;
+  }
+  .principio strong { color: #BDD7EE; }
+
+  /* Esempio ACME */
+  .acme-example {
+    border-radius: 6px; padding: 14px 16px;
+    font-size: 13px; line-height: 1.65;
+    margin-bottom: 16px;
+    border-left: 4px solid;
+  }
+  .acme-example.do-ex  { background: #EEF2F8; border-color: var(--do-col); }
+  .acme-example.bds-ex { background: #EBF2FA; border-color: var(--bds-col); }
+  .acme-example.dc-ex  { background: #EBF4E8; border-color: var(--dc-col); }
+  .acme-example.dgc-ex { background: #F4EBF9; border-color: var(--dgc-col); }
+  .acme-example.co-ex  { background: #FEF6EC; border-color: var(--co-col); }
+  .acme-example.ub-ex  { background: #FDF0E6; border-color: var(--ub-col); }
+  .acme-example b { display: block; margin-bottom: 5px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.7; }
+
+  /* ── CARD RUOLO MEDIA (DC, DGC, CO, UB) ── */
+  .role-card-medium {
+    border-radius: 8px; overflow: hidden;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.08);
+    margin-bottom: 20px;
+    display: grid; grid-template-columns: 200px 1fr;
+  }
+  .role-card-medium .side {
+    padding: 18px 16px;
+    color: white;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .role-card-medium .side .sigla {
+    font-size: 32px; font-weight: bold; opacity: 0.9;
+  }
+  .role-card-medium .side .nome { font-size: 14px; line-height: 1.3; }
+  .role-card-medium .side .persona { font-size: 11px; opacity: 0.75; margin-top: auto; }
+
+  .role-card-medium .body { padding: 18px 20px; background: white; }
+  .role-card-medium .body p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
+
+  /* ── RACI RIEPILOGO ── */
+  .raci-table {
+    width: 100%; border-collapse: collapse;
+    font-size: 12px;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.08);
+    border-radius: 6px; overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .raci-table th {
+    background: var(--blu-scuro); color: white;
+    padding: 9px 12px; text-align: center;
+    font-size: 11px;
+  }
+  .raci-table th:first-child { text-align: left; width: 38%; }
+  .raci-table td {
+    padding: 8px 12px; text-align: center;
+    border-bottom: 1px solid var(--grigio-med);
+    font-size: 13px; font-weight: bold;
+  }
+  .raci-table td:first-child { text-align: left; font-weight: normal; font-size: 12px; }
+  .raci-table tr:last-child td { border-bottom: none; }
+  .raci-table tr:nth-child(even) td { background: #FAFAFA; }
+  .cell-A { color: var(--do-col); }
+  .cell-R { color: var(--verde); }
+  .cell-C { color: var(--viola); }
+  .cell-I { color: var(--testo-light); }
+  .cell-none { color: #ccc; }
+
+  /* ── REGOLE RACI ── */
+  .rules-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+  .rule-box {
+    border-radius: 6px; padding: 14px 16px;
+    border-left: 4px solid;
+  }
+  .rule-box.r1 { background: #EEF2F8; border-color: var(--do-col); }
+  .rule-box.r2 { background: #FDF0E6; border-color: var(--arancio); }
+  .rule-box.r3 { background: var(--verde-ch); border-color: var(--verde); }
+  .rule-box.r4 { background: var(--viola-ch); border-color: var(--viola); }
+  .rule-box .rule-id {
+    font-size: 11px; font-weight: bold; text-transform: uppercase;
+    letter-spacing: 0.08em; opacity: 0.7; margin-bottom: 4px;
+  }
+  .rule-box h4 { font-size: 13px; margin-bottom: 6px; }
+  .rule-box p { font-size: 12px; line-height: 1.6; }
+
+  /* ── GLOSSARIO TERMINI ── */
+  .glossario dt { font-weight: bold; font-size: 13px; color: var(--blu-scuro); margin-top: 10px; }
+  .glossario dd { font-size: 12px; line-height: 1.6; margin-left: 14px; color: var(--testo-light); margin-bottom: 2px; }
+
+  /* ── NOTE STAMPA ── */
+  .print-note {
+    background: var(--grigio-ch); border-radius: 6px;
+    padding: 10px 14px; font-size: 11px; color: var(--testo-light);
+    margin-bottom: 24px; display: flex; align-items: center; gap: 8px;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--blu-scuro); color: white;
+    padding: 16px 40px; font-size: 11px; opacity: 0.9;
+    display: flex; justify-content: space-between;
+    margin-top: 40px;
+  }
+
+  /* ── PRINT ── */
+  @media print {
+    .indice { display: none; }
+    .print-note { display: none; }
+    .role-card, .role-card-medium { page-break-inside: avoid; }
+    .section { page-break-inside: avoid; }
+    body { font-size: 11px; }
+    .doc-header { background: var(--blu-scuro) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .content { padding: 16px 24px; }
+    .role-card-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .role-card-medium .side { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .raci-table th { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .comparison-table th { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .principio { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    @page { margin: 1.5cm; }
+  }
+
+  @media (max-width: 680px) {
+    .two-col, .two-col-3, .rules-grid { grid-template-columns: 1fr; }
+    .role-card-medium { grid-template-columns: 1fr; }
+    .content { padding: 20px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════
+  HEADER
+═══════════════════════════════════════════════════ -->
+<div class="doc-header">
+  <div class="sopratitolo">ACME Bus Services · Data Governance · Esercitazione 2</div>
+  <h1>Guida ai Ruoli<br>di Data Governance</h1>
+  <div class="sottotitolo">Riferimento rapido per partecipanti — da tenere aperto durante l'esercitazione</div>
+  <div class="meta">
+    <span>📋 Da consultare liberamente durante l'esercitazione</span>
+    <span>⚠ Non contiene la soluzione — solo le definizioni dei ruoli</span>
+  </div>
+</div>
+
+<!-- INDICE -->
+<nav class="indice">
+  <span style="font-weight:bold;color:var(--blu-scuro);margin-right:6px">Vai a:</span>
+  <a href="#tabella">Tabella comparativa</a>
+  <a href="#regole">Regole RACI</a>
+  <a href="#do">Data Owner</a>
+  <a href="#bds">Business Data Steward</a>
+  <a href="#dc">Data Custodian</a>
+  <a href="#dgc">Data Gov. Council</a>
+  <a href="#co">Compliance</a>
+  <a href="#ub">Utente Business</a>
+  <a href="#matrice">Matrice da compilare</a>
+  <a href="#glossario">Glossario</a>
+</nav>
+
+<div class="content">
+
+  <!-- NOTA STAMPA -->
+  <div class="print-note">
+    🖨 Per stampare questa guida: File → Stampa, o Ctrl+P / ⌘+P. Orientamento: verticale. Scala: 90%.
+    Per un riferimento digitale, usa i link nell'indice qui sopra.
+  </div>
+
+  <!-- ═══════════════════════════════════════
+    SEZIONE 1 — TABELLA COMPARATIVA
+  ═══════════════════════════════════════ -->
+  <section class="section" id="tabella">
+    <div class="section-title">1 · Tabella comparativa — tutti i ruoli in sintesi</div>
+
+    <table class="comparison-table">
+      <thead>
+        <tr>
+          <th class="role-th">Ruolo</th>
+          <th>Responsabilità principale</th>
+          <th>Persona in ACME</th>
+          <th>Ha la A su…</th>
+          <th style="width:90px">Esegue operazioni tecniche?</th>
+          <th style="width:80px">Agisce cross-dominio?</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <div class="role-cell">
+              <span class="role-badge rb-do">DO</span>
+              Data Owner
+            </div>
+          </td>
+          <td>Accountability finale sui dati del dominio. Approva le regole, risponde al CDA.</td>
+          <td>Direttore Operativo</td>
+          <td>Definizioni, accessi, qualità del dominio</td>
+          <td style="text-align:center"><span class="crossmark">✗</span></td>
+          <td style="text-align:center"><span class="crossmark">✗ *</span></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="role-cell">
+              <span class="role-badge rb-bds">BDS</span>
+              Business Data Steward
+            </div>
+          </td>
+          <td>Presidio operativo della qualità. Conosce i dati meglio di tutti. Tramite tra DO e IT.</td>
+          <td>Analista Operazioni</td>
+          <td>Comunicazioni operative, monitoraggio qualità</td>
+          <td style="text-align:center"><span class="crossmark">✗</span></td>
+          <td style="text-align:center"><span class="crossmark">✗</span></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="role-cell">
+              <span class="role-badge rb-dc">DC</span>
+              Data Custodian
+            </div>
+          </td>
+          <td>Implementazione tecnica delle regole sui dati. Gestisce accessi, pipeline, sistemi.</td>
+          <td>Responsabile IT</td>
+          <td>Attività tecniche sui sistemi del suo perimetro</td>
+          <td style="text-align:center"><span class="checkmark">✓</span></td>
+          <td style="text-align:center"><span class="crossmark">✗</span></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="role-cell">
+              <span class="role-badge rb-dgc">DGC</span>
+              Data Gov. Council
+            </div>
+          </td>
+          <td>Comitato decisionale di governance. Interviene su conflitti tra domini e policy aziendali.</td>
+          <td>Comitato DG (più DO)</td>
+          <td>Policy cross-aziendali, arbitraggio tra domini</td>
+          <td style="text-align:center"><span class="crossmark">✗</span></td>
+          <td style="text-align:center"><span class="checkmark">✓</span></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="role-cell">
+              <span class="role-badge rb-co">CO</span>
+              Compliance
+            </div>
+          </td>
+          <td>Verifica conformità normativa (GDPR, settore trasporti, rendicontazione). Entra se c'è rischio normativo.</td>
+          <td>Funzione Compliance</td>
+          <td>Verifiche di conformità normativa</td>
+          <td style="text-align:center"><span class="crossmark">✗</span></td>
+          <td style="text-align:center"><span class="checkmark">✓ *</span></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="role-cell">
+              <span class="role-badge rb-ub">UB</span>
+              Utente Business
+            </div>
+          </td>
+          <td>Usa i dati per report e decisioni. Segnala anomalie al BDS. Non modifica i dati a monte.</td>
+          <td>Analista Reporting</td>
+          <td>Richieste iniziali di nuovi dati/KPI</td>
+          <td style="text-align:center"><span class="crossmark">✗</span></td>
+          <td style="text-align:center"><span class="crossmark">✗</span></td>
+        </tr>
+      </tbody>
+    </table>
+    <p style="font-size:11px;color:var(--testo-light);margin-top:6px">
+      * Il DO coordina con altri domini in caso di conflitto, ma attraverso il DGC. La Compliance agisce trasversalmente solo quando c'è un obbligo normativo concreto.
+    </p>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+    SEZIONE 2 — REGOLE RACI
+  ═══════════════════════════════════════ -->
+  <section class="section" id="regole">
+    <div class="section-title">2 · Regole RACI — riferimento per la compilazione</div>
+
+    <div class="rules-grid">
+      <div class="rule-box r1">
+        <div class="rule-id">Regola R.1</div>
+        <h4>Un solo A per attività</h4>
+        <p>Per ogni riga della matrice, esattamente <strong>un ruolo</strong> ha la <strong>A</strong>.
+        Due A su una riga significa che nessuno risponde davvero del risultato.</p>
+      </div>
+      <div class="rule-box r2">
+        <div class="rule-id">Regola R.2</div>
+        <h4>Almeno una A obbligatoria</h4>
+        <p>Un'attività senza A non ha proprietario. Se l'attività è contestata,
+        non c'è nessuno con il mandato formale di decidere.</p>
+      </div>
+      <div class="rule-box r3">
+        <div class="rule-id">Regola R.3</div>
+        <h4>R ≠ A</h4>
+        <p>Chi <em>esegue</em> (R) non è necessariamente chi <em>risponde del risultato</em> (A).
+        Un DO non esegue operazioni tecniche: delega il fare, non l'accountability.</p>
+      </div>
+      <div class="rule-box r4">
+        <div class="rule-id">Regola R.4</div>
+        <h4>C ha costo organizzativo</h4>
+        <p>C = consultazione bidirezionale <em>prima</em> della decisione (richiede tempo e feedback formale).
+        Usare C quando I è sufficiente è rumore organizzativo.</p>
+      </div>
+    </div>
+
+    <div style="background:var(--grigio-ch);border-radius:6px;padding:14px 16px;font-size:12px;line-height:1.7">
+      <strong>Reminder — significato delle lettere:</strong><br>
+      <strong style="color:var(--do-col)">A = Accountable</strong> — risponde del risultato (solo uno per riga) &nbsp;|&nbsp;
+      <strong style="color:var(--verde)">R = Responsible</strong> — esegue il lavoro &nbsp;|&nbsp;
+      <strong style="color:var(--viola)">C = Consulted</strong> — consultato prima della decisione (bidirezionale) &nbsp;|&nbsp;
+      <strong style="color:var(--testo-light)">I = Informed</strong> — informato dopo la decisione (unidirezionale)
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+    SEZIONE 3 — DATA OWNER (ESTESO)
+  ═══════════════════════════════════════ -->
+  <section class="section" id="do">
+    <div class="section-title">3 · Data Owner (DO) — approfondimento</div>
+
+    <div class="role-card">
+      <div class="role-card-header" style="background: linear-gradient(135deg, #1F3864 0%, #2E4F8A 100%)">
+        <div class="badge-large">DO</div>
+        <div>
+          <h2>Data Owner</h2>
+          <div class="persona">In ACME: Direttore Operativo — dominio Flotta/Operativo</div>
+        </div>
+      </div>
+      <div class="role-card-body">
+
+        <p class="definizione">
+          Il Data Owner è il <strong>proprietario formale del dato</strong> nel suo dominio di business.
+          Ha l'<em>accountability</em> finale sulla qualità, integrità e uso corretto dei dati del dominio:
+          risponde al CDA e al DGC se qualcosa va storto. Non esegue operazioni tecniche sui dati
+          — delega l'esecuzione, mai la responsabilità.
+        </p>
+
+        <div class="principio">
+          <strong>Principio chiave:</strong> Il DO risponde del <em>risultato</em>, non del <em>metodo</em>.
+          Come un Ministro risponde delle politiche del suo ministero senza fare il lavoro operativo
+          dei propri dipendenti, il DO risponde dei dati del suo dominio senza modificarli o gestirli tecnicamente.
+        </div>
+
+        <div class="two-col">
+          <div class="mini-box verde">
+            <h4>✓ Cosa FA il DO</h4>
+            <ul>
+              <li>Definisce e approva le regole di qualità del dominio</li>
+              <li>Approva chi può accedere ai dati e a quali condizioni</li>
+              <li>Risolve i conflitti di interpretazione sulle definizioni</li>
+              <li>Approva le modifiche al Business Glossary del suo dominio</li>
+              <li>Risponde al DGC per le violazioni di policy nel dominio</li>
+              <li>Valida il risultato finale di un'implementazione tecnica</li>
+            </ul>
+          </div>
+          <div class="mini-box rosso">
+            <h4>✗ Cosa NON FA il DO</h4>
+            <ul>
+              <li>Non esegue query o modifica dati nei sistemi</li>
+              <li>Non gestisce pipeline ETL o configurazioni tecniche</li>
+              <li>Non si occupa di GDPR in prima persona (è il DPO/Compliance)</li>
+              <li>Non risolve anomalie tecniche nei sistemi IT</li>
+              <li>Non interviene su questioni cross-dominio senza il DGC</li>
+              <li>Non esegue analisi operative (spetta al BDS)</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="two-col-3">
+          <div class="mini-box blu">
+            <h4>Relazione con il BDS</h4>
+            <p style="font-size:12px;line-height:1.6">Il DO delega al BDS il presidio operativo della qualità. Il BDS porta le proposte; il DO le approva o le rigetta. Nessuna modifica al Glossario senza la firma del DO.</p>
+          </div>
+          <div class="mini-box blu">
+            <h4>Relazione con il DC</h4>
+            <p style="font-size:12px;line-height:1.6">Il DO autorizza gli interventi tecnici rilevanti (fermo sistema, modifica struttura dati). Il DC esegue. Il DO non conosce — né deve conoscere — i dettagli tecnici dell'implementazione.</p>
+          </div>
+          <div class="mini-box blu">
+            <h4>Relazione con il DGC</h4>
+            <p style="font-size:12px;line-height:1.6">Il DO è membro del DGC. Quando il conflitto supera il perimetro del proprio dominio, il DO porta la questione al DGC e accetta il suo arbitraggio.</p>
+          </div>
+        </div>
+
+        <div class="acme-example do-ex">
+          <b>🚌 Nel caso BusTrack/ERP — cosa fa il DO</b>
+          Il Direttore Operativo riceve la segnalazione del gap di €22.000. <strong>Chiama subito il BDS</strong>
+          (non l'IT, non il DGC). Quando il BDS identifica le due cause, il DO <strong>approva il piano di azione</strong>:
+          chiede al DGC di arbitrare il conflitto cross-dominio sulla definizione di "ricavo", e autorizza
+          il DC a eseguire l'aggiornamento tecnico del deposito di Napoli. Firma la nuova definizione nel
+          Glossario. <strong>Non tocca mai un sistema, non scrive un'email all'IT.</strong>
+        </div>
+
+        <div style="background:var(--marrone-ch);border-radius:6px;padding:12px 14px;font-size:12px;line-height:1.6;border-left:4px solid var(--marrone)">
+          <strong>Errore frequente:</strong> Assegnare la R al DO su attività tecniche ("il DO implementa il KPI nel sistema").
+          Questo viola R.3 e riflette organizzazioni in cui i ruoli DG non sono ancora chiari.
+          Il DO <em>autorizza</em> l'implementazione — non la <em>esegue</em>.
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+    SEZIONE 4 — BUSINESS DATA STEWARD (ESTESO)
+  ═══════════════════════════════════════ -->
+  <section class="section" id="bds">
+    <div class="section-title">4 · Business Data Steward (BDS) — approfondimento</div>
+
+    <div class="role-card">
+      <div class="role-card-header" style="background: linear-gradient(135deg, #2E74B5 0%, #1F5599 100%)">
+        <div class="badge-large">BDS</div>
+        <div>
+          <h2>Business Data Steward</h2>
+          <div class="persona">In ACME: Analista Operazioni — dominio Flotta/Operativo</div>
+        </div>
+      </div>
+      <div class="role-card-body">
+
+        <p class="definizione">
+          Il Business Data Steward è il <strong>presidio operativo della qualità dei dati</strong>
+          nel dominio. Conosce i dati meglio di chiunque altro: sa come vengono generati, dove si trovano,
+          quali regole li governano, e quali anomalie indicano un problema reale vs. un artefatto di sistema.
+          È il <strong>tramite fondamentale</strong> tra il DO (che ha l'accountability) e l'IT
+          (che esegue tecnicamente).
+        </p>
+
+        <div class="principio">
+          <strong>Principio chiave:</strong> Il BDS è gli <em>occhi e le orecchie</em> del DO sui dati.
+          Propone, analizza, monitora — ma non approva. L'approvazione formale resta al DO.
+          Se il BDS non c'è o non funziona, il DO naviga cieco nel suo dominio.
+        </div>
+
+        <div class="two-col">
+          <div class="mini-box verde">
+            <h4>✓ Cosa FA il BDS</h4>
+            <ul>
+              <li>Monitora la qualità dei dati quotidianamente</li>
+              <li>Documenta le definizioni nel Business Glossary (proposta)</li>
+              <li>Identifica anomalie e le porta al DO con analisi</li>
+              <li>Coordina con il DC (IT) per le correzioni tecniche</li>
+              <li>Valida le implementazioni tecniche dal punto di vista del business</li>
+              <li>Gestisce le comunicazioni operative agli utenti del dominio (A/R)</li>
+            </ul>
+          </div>
+          <div class="mini-box rosso">
+            <h4>✗ Cosa NON FA il BDS</h4>
+            <ul>
+              <li>Non approva modifiche al Glossario (spetta al DO)</li>
+              <li>Non concede accessi ai dati (spetta al DO)</li>
+              <li>Non decide da solo le regole di qualità</li>
+              <li>Non modifica dati nei sistemi di produzione</li>
+              <li>Non definisce policy cross-dominio (spetta al DGC)</li>
+              <li>Non sostituisce il DO nelle decisioni di accountability</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="mini-box blu">
+            <h4>Differenza BDS ↔ DO (chiave per la RACI)</h4>
+            <p style="font-size:12px;line-height:1.6">
+              <strong>BDS = R</strong> (Responsible) sulle attività operative e analitiche.<br>
+              <strong>DO = A</strong> (Accountable) sulla stessa attività.<br><br>
+              Esempio: "Proporre la definizione del KPI" → BDS=R (elabora la proposta), DO=A (risponde che sia corretta).
+            </p>
+          </div>
+          <div class="mini-box">
+            <h4>Il BDS nel DAMA-DMBOK2</h4>
+            <p style="font-size:12px;line-height:1.6">
+              Il DMBOK2 (capitolo 3) distingue il <em>Business Data Steward</em> dal
+              <em>Technical Data Steward</em> (che è il DC). Il BDS opera sul <em>significato</em>
+              del dato; il DC opera sul <em>contenitore tecnico</em>. Entrambi servono, ma non si sovrappongono.
+            </p>
+          </div>
+        </div>
+
+        <div class="acme-example bds-ex">
+          <b>🚌 Nel caso BusTrack/ERP — cosa fa il BDS</b>
+          L'Analista Operazioni è il <strong>primo a essere chiamato</strong> dal DO.
+          Analizza i dati di ottobre, identifica le due cause (gap temporale e corse di Napoli),
+          quantifica l'impatto (€18.400 + €3.600 = €22.000) e prepara un report al DO.
+          Propone la nuova definizione di "ricavo operativo mensile" e la porta al DO per l'approvazione.
+          Coordina con il DC il fix tecnico per Napoli. Gestisce poi la comunicazione agli utenti
+          (A/R sulla comunicazione operativa).
+          <strong>Non approva nulla da solo — porta tutto al DO.</strong>
+        </div>
+
+        <div style="background:var(--marrone-ch);border-radius:6px;padding:12px 14px;font-size:12px;line-height:1.6;border-left:4px solid var(--marrone)">
+          <strong>Errore frequente:</strong> Assegnare la A al BDS su attività analitiche
+          ("il BDS approva la definizione del KPI"). Questo viola R.3: il BDS esegue l'analisi
+          e propone la definizione, ma l'accountability della definizione è del DO.
+          In organizzazioni senza un DO formale, il BDS spesso <em>si ritrova</em> a fare anche la A —
+          questo è un segnale di governance immatura.
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+    SEZIONE 5 — RUOLI MEDI (DC, DGC, CO, UB)
+  ═══════════════════════════════════════ -->
+  <section class="section">
+    <div class="section-title">5 · Altri ruoli — schede di riferimento</div>
+
+    <!-- DC -->
+    <div class="role-card-medium" id="dc">
+      <div class="side" style="background: linear-gradient(160deg, #375623, #2d4a1d)">
+        <div class="sigla">DC</div>
+        <div class="nome">Data Custodian<br>(IT)</div>
+        <div class="persona">In ACME: Responsabile IT</div>
+      </div>
+      <div class="body">
+        <p>Il Data Custodian è il <strong>responsabile tecnico dell'implementazione</strong> delle regole sui dati
+        nei sistemi informatici. Esegue le modifiche, gestisce gli accessi a livello tecnico,
+        mantiene i pipeline di integrazione tra sistemi.</p>
+
+        <div class="two-col" style="margin-bottom:10px">
+          <div class="mini-box verde" style="padding:10px 12px">
+            <h4>✓ Fa</h4>
+            <ul>
+              <li>Implementa le regole di qualità nei sistemi</li>
+              <li>Gestisce accessi tecnici ai database</li>
+              <li>Mantiene i pipeline di ETL e integrazione</li>
+              <li>Segnala al BDS le anomalie tecniche</li>
+            </ul>
+          </div>
+          <div class="mini-box rosso" style="padding:10px 12px">
+            <h4>✗ Non fa</h4>
+            <ul>
+              <li>Non decide le regole di business (DO/BDS)</li>
+              <li>Non approva l'uso dei dati per nuovi casi</li>
+              <li>Non risolve conflitti di definizione tra domini</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="acme-example dc-ex">
+          <b>🚌 Nel caso BusTrack/ERP</b>
+          Il Responsabile IT indaga il flusso di trasmissione dal deposito di Napoli,
+          identifica la versione obsoleta di BusTrack, e — dopo l'autorizzazione del DO —
+          esegue l'aggiornamento tecnico e il recupero retroattivo dei dati.
+          <strong>Non decide da solo se recuperare i dati storici: quella è una decisione di business del DO.</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- DGC -->
+    <div class="role-card-medium" id="dgc">
+      <div class="side" style="background: linear-gradient(160deg, #6B2D8B, #4f1f6b)">
+        <div class="sigla">DGC</div>
+        <div class="nome">Data Governance<br>Council</div>
+        <div class="persona">In ACME: Comitato DG</div>
+      </div>
+      <div class="body">
+        <p>Il Data Governance Council è il <strong>comitato decisionale di governance</strong> a livello
+        aziendale. Interviene su questioni cross-dominio, conflitti tra domini diversi,
+        e definisce le policy applicabili a tutta l'organizzazione.</p>
+
+        <div class="two-col" style="margin-bottom:10px">
+          <div class="mini-box verde" style="padding:10px 12px">
+            <h4>✓ Interviene quando…</h4>
+            <ul>
+              <li>C'è un conflitto tra due domini diversi</li>
+              <li>Una definizione impatta più domini</li>
+              <li>Si deve approvare una policy aziendale</li>
+              <li>Un DO escalation formalmente la questione</li>
+            </ul>
+          </div>
+          <div class="mini-box rosso" style="padding:10px 12px">
+            <h4>✗ Non interviene quando…</h4>
+            <ul>
+              <li>Il problema è interno a un singolo dominio</li>
+              <li>È un'anomalia tecnica operativa</li>
+              <li>Il DO può risolvere nel suo perimetro</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="acme-example dgc-ex">
+          <b>🚌 Nel caso BusTrack/ERP</b>
+          Il DGC interviene quando il DO scopre che la nuova definizione di "ricavo" confligge con
+          la definizione del dominio Finanziario. Il DGC arbitra e adotta la soluzione delle
+          due definizioni con label esplicite ("ricavo operativo" vs. "ricavo contabile").
+          <strong>Non gestisce l'anomalia iniziale — quella è interna al dominio Operativo.</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- CO -->
+    <div class="role-card-medium" id="co">
+      <div class="side" style="background: linear-gradient(160deg, #7F4F00, #5c3900)">
+        <div class="sigla">CO</div>
+        <div class="nome">Compliance</div>
+        <div class="persona">In ACME: Funzione Compliance</div>
+      </div>
+      <div class="body">
+        <p>La funzione Compliance verifica che i processi aziendali rispettino gli obblighi normativi:
+        GDPR, normative del settore trasporti, obblighi di rendicontazione alle autorità.
+        <strong>Entra quando c'è un rischio normativo concreto</strong> — non su anomalie operative interne.</p>
+
+        <div class="two-col" style="margin-bottom:10px">
+          <div class="mini-box verde" style="padding:10px 12px">
+            <h4>✓ Interviene quando…</h4>
+            <ul>
+              <li>Il gap dati rischia di generare rendicontazione errata verso l'autorità</li>
+              <li>Emergono trattamenti di dati personali non conformi al GDPR</li>
+              <li>C'è un obbligo normativo specifico sul tipo di dato</li>
+            </ul>
+          </div>
+          <div class="mini-box rosso" style="padding:10px 12px">
+            <h4>✗ Non è il primo contatto per…</h4>
+            <ul>
+              <li>Anomalie operative interne senza impatto normativo</li>
+              <li>Problemi tecnici di sincronizzazione dati</li>
+              <li>Conflitti di definizione intra-dominio</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="acme-example co-ex">
+          <b>🚌 Nel caso BusTrack/ERP</b>
+          La Compliance entra solo se il gap di €22.000 rischia di produrre
+          una rendicontazione errata verso l'autorità regolatoria dei trasporti, o se
+          emergono trattamenti di dati personali anomali. <strong>Per l'anomalia operativa iniziale,
+          non è il primo interlocutore.</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- UB -->
+    <div class="role-card-medium" id="ub">
+      <div class="side" style="background: linear-gradient(160deg, #E8711A, #c55e0d)">
+        <div class="sigla">UB</div>
+        <div class="nome">Utente Business</div>
+        <div class="persona">In ACME: Analista Reporting</div>
+      </div>
+      <div class="body">
+        <p>L'Utente Business è chi <strong>usa i dati per il proprio lavoro</strong>: prepara report,
+        alimenta dashboard, prende decisioni basate sui dati. Non modifica i dati a monte.
+        Quando trova un'anomalia, la segnala al BDS — non la risolve.</p>
+
+        <div class="two-col" style="margin-bottom:10px">
+          <div class="mini-box verde" style="padding:10px 12px">
+            <h4>✓ Fa</h4>
+            <ul>
+              <li>Usa i dati per report, analisi, decisioni operative</li>
+              <li>Segnala al BDS le anomalie che riscontra</li>
+              <li>Ha la A sulle richieste di nuovi dati/KPI che promuove</li>
+            </ul>
+          </div>
+          <div class="mini-box rosso" style="padding:10px 12px">
+            <h4>✗ Non fa</h4>
+            <ul>
+              <li>Non modifica dati nei sistemi sorgente</li>
+              <li>Non ha accountability sul dato (spetta al DO)</li>
+              <li>Non definisce le regole di qualità del dato</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="acme-example ub-ex">
+          <b>🚌 Nel caso BusTrack/ERP</b>
+          L'analista che prepara il report mensile per il CDA è un UB. È lui che ha
+          scoperto il gap di €22.000 confrontando il report BusTrack con la chiusura ERP.
+          <strong>Il suo ruolo finisce qui: segnala, non risolve.</strong>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+    SEZIONE 6 — MATRICE VUOTA
+  ═══════════════════════════════════════ -->
+  <section class="section" id="matrice">
+    <div class="section-title">6 · Matrice RACI dell'indagine — da compilare (foglio di lavoro)</div>
+    <p style="font-size:12px;color:var(--testo-light);margin-bottom:14px">
+      Usate questa matrice come riferimento durante la compilazione del foglio Excel.
+      Per ogni cella, scegliete tra A, R, C, I o lasciate vuoto (—).
+      Ricordate: una sola A per riga (R.1), almeno una A per riga (R.2).
+    </p>
+
+    <table class="raci-table">
+      <thead>
+        <tr>
+          <th>Attività</th>
+          <th>DO</th>
+          <th>BDS</th>
+          <th>DC</th>
+          <th>DGC</th>
+          <th>CO</th>
+          <th>UB</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1. Segnalare il gap tra BusTrack e ERP al team DG</td>
+          <td>___</td><td>___</td><td>___</td><td>___</td><td>___</td><td>___</td>
+        </tr>
+        <tr>
+          <td>2. Analizzare le cause dell'anomalia</td>
+          <td>___</td><td>___</td><td>___</td><td>___</td><td>___</td><td>___</td>
+        </tr>
+        <tr>
+          <td>3. Proporre la nuova definizione di "ricavo mensile"</td>
+          <td>___</td><td>___</td><td>___</td><td>___</td><td>___</td><td>___</td>
+        </tr>
+        <tr>
+          <td>4. Arbitrare il conflitto cross-dominio sulla definizione</td>
+          <td>___</td><td>___</td><td>___</td><td>___</td><td>___</td><td>___</td>
+        </tr>
+        <tr>
+          <td>5. Approvare la definizione nel Glossario aziendale</td>
+          <td>___</td><td>___</td><td>___</td><td>___</td><td>___</td><td>___</td>
+        </tr>
+        <tr>
+          <td>6. Eseguire il fix tecnico deposito Napoli</td>
+          <td>___</td><td>___</td><td>___</td><td>___</td><td>___</td><td>___</td>
+        </tr>
+        <tr>
+          <td>7. Comunicare la risoluzione al CDA</td>
+          <td>___</td><td>___</td><td>___</td><td>___</td><td>___</td><td>___</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p style="font-size:11px;color:var(--testo-light);margin-top:6px">
+      ⚑ Nota: questa matrice di riferimento dell'indagine è distinta dalla matrice
+      dell'Esercitazione 1 (approvazione KPI di puntualità). Sono due processi diversi.
+    </p>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+    SEZIONE 7 — GLOSSARIO
+  ═══════════════════════════════════════ -->
+  <section class="section" id="glossario">
+    <div class="section-title">7 · Glossario termini chiave</div>
+
+    <dl class="glossario">
+      <dt>Accountability</dt>
+      <dd>Responsabilità formale e ultima del risultato. Non può essere delegata: il DO è accountable anche quando delega l'esecuzione al BDS.</dd>
+
+      <dt>Business Glossary</dt>
+      <dd>Registro aziendale delle definizioni ufficiali dei termini di business ("ricavo di competenza", "corsa valida", ecc.). Gestito dal BDS, approvato dal DO, pubblicato dal DGC.</dd>
+
+      <dt>Data Domain (Dominio dati)</dt>
+      <dd>Insieme di dati governato da un unico Data Owner. In ACME: dominio Flotta/Operativo (DO = Direttore Operativo), dominio Amministrativo-Finanziario (DO = CFO).</dd>
+
+      <dt>Data Quality Rule</dt>
+      <dd>Regola formale che definisce cosa rende un dato "di qualità" per uno scopo specifico (completezza, accuratezza, tempestività, coerenza). Proposta dal BDS, approvata dal DO.</dd>
+
+      <dt>DAMA-DMBOK2</dt>
+      <dd>Data Management Body of Knowledge, seconda edizione — il framework di riferimento per la gestione dei dati. Definisce i ruoli e le responsabilità della Data Governance (capitolo 3).</dd>
+
+      <dt>ETL (Extract, Transform, Load)</dt>
+      <dd>Processo tecnico di estrazione, trasformazione e caricamento dati tra sistemi. Gestito dal DC.</dd>
+
+      <dt>KPI (Key Performance Indicator)</dt>
+      <dd>Indicatore quantitativo di performance. Nell'Esercitazione 1 è il soggetto del processo di approvazione RACI.</dd>
+
+      <dt>RACI</dt>
+      <dd>Framework di assegnazione responsabilità: Responsible, Accountable, Consulted, Informed. Strumento standard di Data Governance per documentare chi fa cosa in un processo.</dd>
+
+      <dt>Ricavo operativo mensile (ACME)</dt>
+      <dd>Definizione adottata dopo il caso BusTrack/ERP: importo delle corse validate a bordo nel mese, indipendentemente dalla data di incasso. Distinto dal "ricavo contabile mensile" (data di incasso effettivo).</dd>
+    </dl>
+  </section>
+
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <span>ACME Bus Services · Data Governance · Esercitazione 2</span>
+  <span>Guida ai Ruoli DG — Uso partecipanti — Ref: DAMA-DMBOK2 cap. 3 · Policy n. 128</span>
+</footer>
+
+</body>
+</html>
