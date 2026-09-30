@@ -1,2 +1,2 @@
 # dama
-Repository for dmbok related materials
+Repository for dmbok related materials.
